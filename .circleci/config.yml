@@ -6,8 +6,7 @@ jobs:
     resource_class: medium
     steps:
       - checkout
-      - run: python3 -m pip install .
-      - run: python3 -m pytest
+      - run: make test
 workflows:
   main:
     jobs:
