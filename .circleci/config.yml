@@ -14,6 +14,7 @@ jobs:
     resource_class: windows.medium
     steps:
       - checkout
+      - run: python -m pip install pytest flake8
       - run: python -m pip install .
       - run: python -m pytest
 workflows:
