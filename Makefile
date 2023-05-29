@@ -157,7 +157,7 @@ pipx-install: get-pipx pipx-remove dist
 	@printf '\n--- INSTALL IN A PIPX ENVIRONMENT ---\n'
 	pipx install "${dist_whl}"
 
-pipx-devel: get-pipx pipx-remove dist
+pipx-devel: get-pipx pipx-remove
 	@printf '\n--- INSTALL IN A PIPX ENVIRONMENT WITH EDITABLE SOURCE ---\n'
 	pipx install --editable .
 
