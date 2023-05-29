@@ -76,15 +76,15 @@ tasks:
       - echo " develop      - install into venv with 'pip install --editable .'"
       - echo ' exe          - build a single executable file with pyinstaller'
       - echo
-      # - printf 'PIPX TASKS (using ~/.local/pipx/venvs/%s)\n' "{{.NAME}}"
-      # - echo ' pipx-install - flit build and install with pipx install'
-      # - echo " pipx-devel   - install with 'pipx install --editable .'"
-      # - printf ' pipx-remove  - same as pipx uninstall %s\n' "{{.NAME}}"
-      # - echo
+      - printf 'PIPX TASKS (using ~/.local/pipx/venvs/%s)\n' "{{.NAME}}"
+      - echo ' pipx-install - flit build and install with pipx install'
+      - echo " pipx-devel   - install with 'pipx install --editable .'"
+      - printf ' pipx-remove  - same as pipx uninstall %s\n' "{{.NAME}}"
+      - echo
       - echo 'MISC TASKS that are primarily precursors to the tasks above'
       - echo ' build | dist - flit build'
       - echo ' clean        - remove venv, build and dist directories'
-      # - echo ' get-pipx     - install pipx into user site-packages if not in PATH'
+      - echo ' get-pipx     - install pipx into user site-packages if not in PATH'
       - echo ' venv         - only make virtualenv and install build deps'
       - echo ' venv-install - install into venv with all dependencies/extras'
     silent: true
@@ -108,6 +108,8 @@ tasks:
       - echo
       - echo ' - set __version__ to X.X.Xa0'
     silent: true
+
+### targets using venv #######################################################
   venv:
     desc: Set up virtual environment, pip and flit
     cmds:
@@ -174,5 +176,37 @@ tasks:
       - 'rm -rf build dist {{.VENVDIR}}'
       - 'rm -f {{.NAME}}.spec'
       - find -type d -name __pycache__ -print0 | xargs -0 rm -rf
+
+### pipx targets / user packages #############################################
+  pipx-install:
+    desc: Install project into/using a pipx env
+    cmds:
+      - task: get-pipx
+      - task: pipx-remove
+      - task: dist
+      - cmd: printf '\n--- INSTALL IN A PIPX ENVIRONMENT ---\n'
+        silent: true
+      - 'pipx install "{{.dist_whl}}"'
+  pipx-devel:
+    desc: Install project using pipx env with editable/linked source
+    cmds:
+      - task: get-pipx
+      - task: pipx-remove
+      - cmd: printf '\n--- INSTALL IN A PIPX ENVIRONMENT WITH EDITABLE SOURCE ---\n'
+        silent: true
+      - pipx install --editable .
+  pipx-remove:
+    desc: Uninstall from pipx if found, else continue
+    cmds:
+      - cmd: printf '\n--- UNINSTALL FROM PIPX IF FOUND, ELSE CONTINUE ---\n'
+        silent: true
+      - cmd: 'pipx uninstall "{{.NAME}}"'
+        ignore_error: true
+  get-pipx:
+    desc: If pipx is not found, intall pipx with pip install --user
+    cmds:
+      - cmd: printf '\n--- FIND PIPX OR ELSE INSTALL PIPX IN USER ENVIRONMENT ---\n'
+        silent: true
+      - 'command -v pipx >/dev/null || {{.sys_pip}} install --user pipx'
 
 # https://taskfile.dev
