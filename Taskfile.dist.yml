@@ -94,17 +94,17 @@ tasks:
       - echo 'MANUAL RELEASE STEPS'
       - echo ' - Create / edit ~/.pypirc'
       - echo
-      - echo ' $$ make clean'
-      - echo ' $$ flit publish --repository testpypi'
+      - echo ' $ make clean'
+      - echo ' $ flit publish --repository testpypi'
       - echo
       - echo ' - check sdist and project page on test.pypi.org'
       - echo ' - if not already done, bump version in package/module and Makefile.'
       - echo ' - edit changelog,'
       - echo ' - make final signed commit for release.'
       - echo
-      - echo ' $$ flit publish'
-      - echo ' $$ git tag -S vX.X.X'
-      - echo ' $$ git push --tags'
+      - echo ' $ flit publish'
+      - echo ' $ git tag -S vX.X.X'
+      - echo ' $ git push --tags'
       - echo
       - echo ' - set __version__ to X.X.Xa0'
     silent: true
