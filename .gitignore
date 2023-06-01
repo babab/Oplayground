@@ -2,8 +2,10 @@
 *.log
 *.spec
 
+.coverage
 config.mk
 
 /build/
 /dist/
+/htmlcov/
 /.virtualenv/
