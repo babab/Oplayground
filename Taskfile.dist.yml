@@ -156,7 +156,7 @@ tasks:
       - task: venv
       - cmd: printf '\n--- INSTALL IN VENV WITH EDITABLE SOURCE ---\n'
         silent: true
-      - '{.{venv_pip}} install --editable .'
+      - '{{.venv_pip}} install --editable .'
   test:
     desc: Run all tests and check code for style and complexity
     cmds:
