@@ -61,26 +61,31 @@ help:
 	@echo "- 'make develop' to keep the command(s) out your PATH (by default,"
 	@echo '  but available after sourcing bin/activate).'
 	@echo
-	@echo 'The test target will always build and install using the wheel dist,'
-	@echo 'even when this project is already installed with an --editable flag.'
-	@echo 'This is to minimize any issues that may arise in the packaging'
-	@echo 'process by including it in testing.'
+	@echo 'The test target will install a link to the project code so that'
+	@echo 'the source and tests can be inspected for code coverage.'
+	@echo
+	@echo 'The test-pkg target will always build and install using the'
+	@echo 'wheel dist, even when this project is already installed with an'
+	@echo '--editable flag. This is to minimize any issues that may arise'
+	@echo 'in the packaging process by including it in testing. This target'
+	@echo 'does not check for coverage.'
 	@echo
 	@echo 'HELP'
 	@echo ' help         - show this help information'
 	@echo ' release      - show manual release steps'
 	@echo
 	@printf 'BUILD AND TEST TARGETS (using venv at %s)\n' "${VENVDIR}"
-	@echo ' test         - build and install; check style and run unit tests'
+	@echo ' test         - make develop and run tests through Coverage.py'
 	@echo " develop      - install into venv with 'pip install --editable .'"
 	@echo ' exe          - build a single executable file with pyinstaller'
+	@echo ' test-pkg     - install pkg and run checks/tests without coverage'
 	@echo
 	@printf 'PIPX TARGETS (using ~/.local/pipx/venvs/%s)\n' "${NAME}"
 	@echo ' pipx-install - flit build and install with pipx install'
 	@echo " pipx-devel   - install with 'pipx install --editable .'"
 	@printf ' pipx-remove  - same as pipx uninstall %s\n' "${NAME}"
 	@echo
-	@echo 'MISC TARGETS that are primarily precursors to the targets above'
+	@echo 'MISC TARGETS that are used as precursors in the targets above'
 	@echo ' build | dist - flit build'
 	@echo ' clean        - remove venv, build and dist directories'
 	@echo ' get-pipx     - install pipx into user site-packages if not in PATH'
@@ -119,10 +124,10 @@ ${VENVDIR}:
 	${SYSPYTHON} -m venv ${VENVDIR}
 	${venv_pip} install -U pip
 	${venv_pip} install flit
-
-exe: clean ${VENVDIR}
 	@printf '\n--- INSTALL ALL DEPENDENCIES BUT NOT %s ITSELF ---\n' "${NAME}"
 	${VENVDIR}/bin/flit install --only-deps
+
+exe: clean ${VENVDIR}
 	@printf '\n--- FREEZE AND COMPILE WITH PYINSTALLER ---\n'
 	${VENVDIR}/bin/pyinstaller --onefile --clean ${SCRIPT}
 
@@ -138,15 +143,24 @@ develop: ${VENVDIR}
 	@printf '\n--- INSTALL IN VENV WITH EDITABLE SOURCE ---\n'
 	${venv_pip} install --editable .
 
-test: ${VENVDIR} venv-install
+test: ${VENVDIR} develop
 	@printf '\n--- CHECK CODE STYLE AND CYCLOMATIC COMPLEXITY ---\n'
 	${VENVDIR}/bin/flake8 -v --max-complexity=20 ${CODE_DIRS}
-	@printf '\n--- TEST CODE ---\n'
+	@printf '\n--- RUN PYTEST THROUGH COVERAGE ---\n'
+	${VENVDIR}/bin/coverage run -m pytest
+	@printf '\n--- COVERAGE REPORT ---\n'
+	${VENVDIR}/bin/coverage report
+	${VENVDIR}/bin/coverage html
+
+test-pkg: ${VENVDIR} venv-install
+	@printf '\n--- CHECK CODE STYLE AND CYCLOMATIC COMPLEXITY ---\n'
+	${VENVDIR}/bin/flake8 -v --max-complexity=20 ${CODE_DIRS}
+	@printf '\n--- RUN PYTEST ---\n'
 	${VENVDIR}/bin/pytest  # uses config section in pyproject.toml
 
 clean:
 	@printf '\n--- CLEANING UP FILES AND VIRTUAL ENV ---\n'
-	rm -rf build dist ${VENVDIR}
+	rm -rf build dist htmlcov ${VENVDIR}
 	rm -f ${NAME}.spec
 	find -type d -name __pycache__ -print0 | xargs -0 rm -rf
 

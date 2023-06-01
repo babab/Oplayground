@@ -57,10 +57,16 @@ from system packages, you can either use:
 - `make develop` to keep the command(s) out your PATH (by default,
   but available after sourcing bin/activate).
 
-The test target will always build and install using the wheel dist,
-even when this project is already installed with an --editable flag.
-This is to minimize any issues that may arise in the packaging
-process by including it in testing.
+The test target will install a link to the project code so that
+the source and tests can be inspected for code coverage.
+
+The test-pkg target will always build and install using the
+wheel dist, even when this project is already installed with an
+--editable flag. This is to minimize any issues that may arise
+in the packaging process by including it in testing. This target
+does not check for coverage.
+
+----------------------------------------------------------------
 
 *Run `make` without arguments or `make help` to show this help
 information on the command line.*
@@ -73,16 +79,17 @@ HELP
  release      - show manual release steps
 
 BUILD AND TEST TARGETS (using venv at .virtualenv)
- test         - build and install; check style and run unit tests
+ test         - make develop and run tests through Coverage.py
  develop      - install into venv with 'pip install --editable .'
  exe          - build a single executable file with pyinstaller
+ test-pkg     - install pkg and run checks/tests without coverage
 
 PIPX TARGETS (using ~/.local/pipx/venvs/cipg)
  pipx-install - flit build and install with pipx install
  pipx-devel   - install with 'pipx install --editable .'
  pipx-remove  - same as pipx uninstall cipg
 
-MISC TARGETS that are primarily precursors to the targets above
+MISC TARGETS that are used as precursors in the targets above
  build | dist - flit build
  clean        - remove venv, build and dist directories
  get-pipx     - install pipx into user site-packages if not in PATH
@@ -97,6 +104,8 @@ MISC TARGETS that are primarily precursors to the targets above
 *For more info, see: https://github.com/go-task/task and/or
 https://taskfile.dev*
 
+----------------------------------------------------------------
+
 This taskfile is meant to aid in development flow as well as
 document it. Regular users should follow the instructions on
 installing cipg in the README.
@@ -108,10 +117,14 @@ from system packages, you can either use:
 - `task develop` to keep the command(s) out your PATH (by default,
   but available after sourcing bin/activate).
 
-The test task will always build and install using the wheel dist,
-even when this project is already installed with an --editable flag.
-This is to minimize any issues that may arise in the packaging
-process by including it in testing.
+The test task will install a link to the project code so that
+the source and tests can be inspected for code coverage.
+
+The test-pkg task will always build and install using the
+wheel dist, even when this project is already installed with an
+--editable flag. This is to minimize any issues that may arise
+in the packaging process by including it in testing. This task
+does not check for coverage.
 
 *Run `task` without arguments or `task help` to show this help
 information on the command line. Because the name task is so generic,
@@ -125,16 +138,17 @@ HELP
  release      - show manual release steps
 
 BUILD AND TEST TASKS (using venv at .virtualenv)
- test         - build and install; check style and run unit tests
+ test         - make develop and run tests through Coverage.py
  develop      - install into venv with 'pip install --editable .'
  exe          - build a single executable file with pyinstaller
+ test-pkg     - install pkg and run checks/tests without coverage
 
 PIPX TASKS (using ~/.local/pipx/venvs/cipg)
  pipx-install - flit build and install with pipx install
  pipx-devel   - install with 'pipx install --editable .'
  pipx-remove  - same as pipx uninstall cipg
 
-MISC TASKS that are primarily precursors to the tasks above
+MISC TASKS that are used as precursors in the tasks above
  build | dist - flit build
  clean        - remove venv, build and dist directories
  get-pipx     - install pipx into user site-packages if not in PATH

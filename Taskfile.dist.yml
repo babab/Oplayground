@@ -62,26 +62,31 @@ tasks:
       - echo "- 'task develop' to keep the command(s) out your PATH (by default,"
       - echo '  but available after sourcing bin/activate).'
       - echo
-      - echo 'The test task will always build and install using the wheel dist,'
-      - echo 'even when this project is already installed with an --editable flag.'
-      - echo 'This is to minimize any issues that may arise in the packaging'
-      - echo 'process by including it in testing.'
+      - echo 'The test task will install a link to the project code so that'
+      - echo 'the source and tests can be inspected for code coverage.'
+      - echo
+      - echo 'The test-pkg task will always build and install using the'
+      - echo 'wheel dist, even when this project is already installed with an'
+      - echo '--editable flag. This is to minimize any issues that may arise'
+      - echo 'in the packaging process by including it in testing. This task'
+      - echo 'does not check for coverage.'
       - echo
       - echo 'HELP'
       - echo ' help         - show this help information'
       - echo ' release      - show manual release steps'
       - echo
       - printf 'BUILD AND TEST TASKS (using venv at %s)\n' "{{.VENVDIR}}"
-      - echo ' test         - build and install; check style and run unit tests'
+      - echo ' test         - make develop and run tests through Coverage.py'
       - echo " develop      - install into venv with 'pip install --editable .'"
       - echo ' exe          - build a single executable file with pyinstaller'
+      - echo ' test-pkg     - install pkg and run checks/tests without coverage'
       - echo
       - printf 'PIPX TASKS (using ~/.local/pipx/venvs/%s)\n' "{{.NAME}}"
       - echo ' pipx-install - flit build and install with pipx install'
       - echo " pipx-devel   - install with 'pipx install --editable .'"
       - printf ' pipx-remove  - same as pipx uninstall %s\n' "{{.NAME}}"
       - echo
-      - echo 'MISC TASKS that are primarily precursors to the tasks above'
+      - echo 'MISC TASKS that are used as precursors in the tasks above'
       - echo ' build | dist - flit build'
       - echo ' clean        - remove venv, build and dist directories'
       - echo ' get-pipx     - install pipx into user site-packages if not in PATH'
@@ -122,6 +127,9 @@ tasks:
       - '{{.SYSPYTHON}} -m venv {{.VENVDIR}}'
       - '{{.venv_pip}} install -U pip'
       - '{{.venv_pip}} install flit'
+      - cmd: printf '\n--- INSTALL ALL DEPENDENCIES BUT NOT %s ITSELF ---\n' "{{.NAME}}"
+        silent: true
+      - '{{.VENVDIR}}/bin/flit install --only-deps'
     status:
       - test -f '{{.VENVDIR}}/bin/python3'
   exe:
@@ -129,9 +137,6 @@ tasks:
     cmds:
       - task: clean
       - task: venv
-      - cmd: printf '\n--- INSTALL ALL DEPENDENCIES BUT NOT %s ITSELF ---\n' "{{.NAME}}"
-        silent: true
-      - '{{.VENVDIR}}/bin/flit install --only-deps'
       - cmd: printf '\n--- FREEZE AND COMPILE WITH PYINSTALLER ---\n'
         silent: true
       - '{{.VENVDIR}}/bin/pyinstaller --onefile --clean {{.SCRIPT}}'
@@ -158,6 +163,21 @@ tasks:
         silent: true
       - '{{.venv_pip}} install --editable .'
   test:
+    desc: Run all tests through Coverage.py and check for style and complexity
+    cmds:
+      - task: venv
+      - task: develop
+      - cmd: printf '\n--- CHECK CODE STYLE AND CYCLOMATIC COMPLEXITY ---\n'
+        silent: true
+      - '{{.VENVDIR}}/bin/flake8 -v --max-complexity=20 {{.CODE_DIRS}}'
+      - cmd: printf '\n--- RUN PYTEST THROUGH COVERAGE ---\n'
+        silent: true
+      - '{{.VENVDIR}}/bin/coverage run -m pytest'
+      - cmd: printf '\n--- COVERAGE REPORT ---\n'
+        silent: true
+      - '{{.VENVDIR}}/bin/coverage report'
+      - '{{.VENVDIR}}/bin/coverage html'
+  test-pkg:
     desc: Run all tests and check code for style and complexity
     cmds:
       - task: venv
@@ -165,7 +185,7 @@ tasks:
       - cmd: printf '\n--- CHECK CODE STYLE AND CYCLOMATIC COMPLEXITY ---\n'
         silent: true
       - '{{.VENVDIR}}/bin/flake8 -v --max-complexity=20 {{.CODE_DIRS}}'
-      - cmd: printf '\n--- TEST CODE ---\n'
+      - cmd: printf '\n--- RUN PYTEST ---\n'
         silent: true
       - '{{.VENVDIR}}/bin/pytest  # uses config section in pyproject.toml'
   clean:
@@ -173,7 +193,7 @@ tasks:
     cmds:
       - cmd: printf '\n--- CLEANING UP FILES AND VIRTUAL ENV ---\n'
         silent: true
-      - 'rm -rf build dist {{.VENVDIR}}'
+      - 'rm -rf build dist htmlcov {{.VENVDIR}}'
       - 'rm -f {{.NAME}}.spec'
       - find -type d -name __pycache__ -print0 | xargs -0 rm -rf
 
